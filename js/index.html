@@ -25,11 +25,13 @@
 
         demo : false,
 
-        particles : 200,
+        particles : 10000,
 
-        radius :1000
+        radius :10000
 
     };
+
+    var clock = new THREE.Clock( true );
 
 
 
@@ -67,8 +69,6 @@
 
             mesh = new THREE.Mesh( geometry, material );
 
-            particles.push(mesh);
-
             _point = randomSpherePoint( 0, 0, 0, params.radius);
 
             mesh.position.set(
@@ -76,6 +76,11 @@
                     _point.y,
                     _point.z
             );
+
+            mesh.initial_position = _point;
+
+            particles.push(mesh);
+
             scene.add( mesh );
 
         }
@@ -104,9 +109,23 @@
 
         requestAnimationFrame( animate );
 
-        scene.rotation.y+=0.001;
-        scene.rotation.z+=0.001;
+        //scene.rotation.y+=0.001;
+        //scene.rotation.z+=0.001;
 
+        var _elapsed = Date.now()* 0.0005;;
+
+        var _sin = Math.sin(_elapsed);
+        var _cos = Math.cos(_elapsed);
+
+
+
+        for ( var i = 0 ; i< particles.length; i ++ ){
+
+            particles[i].position.y = particles[i].initial_position.y * _sin ;
+            particles[i].position.z = particles[i].initial_position.z * _cos;
+            particles[i].position.x = particles[i].initial_position.x * _cos ^2 ;
+
+        }
 
         renderer.render( scene, camera );
 
