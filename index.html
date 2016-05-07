@@ -175,7 +175,11 @@
         var _sin = Math.sin(_elapsed );
         var _cos = Math.cos(_elapsed + Math.random()*0.01);
 
-        renderer.setClearColor( new THREE.Color(analyser.getData()[ 2 ] / 700,analyser.getData()[ 4 ] / 700,analyser.getData()[ 8 ] / 700), 1);
+        renderer.setClearColor( new THREE.Color(
+                (analyser.getData()[ 2 ] / 500),
+                (analyser.getData()[ 4 ] / 500),
+                (analyser.getData()[ 8 ] / 500)),
+                1);
         //light.color = new THREE.Color(1*_cos,1*_cos,1*_cos);
 
         light.groundGolor = new THREE.Color(0,analyser.getData()[ 4 ] / 256,analyser.getData()[ 8 ] / 256);
@@ -193,6 +197,7 @@
             particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 +1] ) ;
             particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 +1] );
             particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,2) ;
+            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,3) ;
 
             particles[i].material.color = new THREE.Color (
                     _sin * (-1^ (i % 3) ) * ( analyser.getData()[ i%8 ] /1000),
@@ -206,13 +211,14 @@
         camera.rotation.y+= 0.001;
         camera.rotation.x+= 0.001;
 
-        var _sin2 = Math.sin(_elapsed * 0.00005 );
-        var _cos2 = Math.cos(_elapsed *0.000001);
+        var _sin2 = Math.sin( _elapsed * 0.5);
+        var _cos2 = Math.cos(_elapsed *0.1);
 
-        camera.position.z = 5000 * _sin;
-        camera.position.y = 5000 * _cos;
-        camera.position.x = 5000 * (_sin + _cos);
+        camera.position.z = 12000 * _sin2;
+        camera.position.y = 12000 * _cos2;
+        camera.position.x = 12000 * (_cos2);
         camera.lookAt(new THREE.Vector3(0,0,0));
+      //  camera.lookAt(particles[0].position);
 
         renderer.render( scene, camera );
 
