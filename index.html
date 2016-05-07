@@ -27,7 +27,7 @@
 
         demo : false,
 
-        particles : 5000,
+        particles : 2000,
 
         radius : 5000,
 
@@ -71,7 +71,7 @@
         var _theta, _phi, _x, _y, _point;
 
         camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
-        camera.position.z = 0;
+        camera.position.z = 7000;
 
         scene = new THREE.Scene();
 
@@ -205,6 +205,14 @@
         camera.rotation.z+= 0.001;
         camera.rotation.y+= 0.001;
         camera.rotation.x+= 0.001;
+
+        var _sin2 = Math.sin(_elapsed * 0.00005 );
+        var _cos2 = Math.cos(_elapsed *0.000001);
+
+        camera.position.z = 5000 * _sin;
+        camera.position.y = 5000 * _cos;
+        camera.position.x = 5000 * (_sin + _cos);
+        camera.lookAt(new THREE.Vector3(0,0,0));
 
         renderer.render( scene, camera );
 
