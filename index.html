@@ -27,9 +27,9 @@
 
         demo : false,
 
-        particles : 10000,
+        particles : 5000,
 
-        radius : 10000,
+        radius : 5000,
 
         ballRadius : 50
 
@@ -71,7 +71,7 @@
         var _theta, _phi, _x, _y, _point;
 
         camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
-        camera.position.z = 1000;
+        camera.position.z = 0;
 
         scene = new THREE.Scene();
 
@@ -80,7 +80,7 @@
 
 
         var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 32, 32 );
-        var material = new THREE.MeshPhongMaterial( { map: texture } );
+        var material = new THREE.MeshStandardMaterial( { map: texture, metal:true,bumpMap:texture } );
 
         for ( var i = 0 ; i< params.particles; i ++ ){
 
@@ -122,7 +122,9 @@
             sound1.play();
         });
         camera.add( sound1 );
-        sound1.position.z = -10;
+        sound1.position.z = 1;
+        sound1.position.x = 1;
+        sound1.position.y = 1;
 
         analyser = new THREE.AudioAnalyser( sound1, 32 );
 
@@ -135,7 +137,8 @@
         directionalLight.position.set( 1, 0, 1 );
         scene.add( directionalLight );
 
-        light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        //light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );; // soft white light
         scene.add( light );
 
         renderer = new THREE.WebGLRenderer();
@@ -169,16 +172,17 @@
 
         var _elapsed = Date.now()* 0.0005;;
 
-        var _sin = Math.sin(_elapsed);
+        var _sin = Math.sin(_elapsed );
         var _cos = Math.cos(_elapsed + Math.random()*0.01);
 
-        renderer.setClearColor( new THREE.Color(1*_cos,analyser.getData()[ 4 ] / 256,analyser.getData()[ 4 ] / 256), 1);
+        renderer.setClearColor( new THREE.Color(analyser.getData()[ 2 ] / 700,analyser.getData()[ 4 ] / 700,analyser.getData()[ 8 ] / 700), 1);
         //light.color = new THREE.Color(1*_cos,1*_cos,1*_cos);
 
-        light.color = new THREE.Color(1*_cos,analyser.getData()[ 4 ] / 256,analyser.getData()[ 4 ] / 256);
+        light.groundGolor = new THREE.Color(0,analyser.getData()[ 4 ] / 256,analyser.getData()[ 8 ] / 256);
 
-        directionalLight.position.set( _cos, _cos, _cos );
-        directionalLight.color = new THREE.Color(analyser.getData()[ 1 ] / 256,analyser.getData()[ 4 ] / 256,analyser.getData()[ 3 ] / 256);
+        directionalLight.position.set( analyser.getData()[ 1 ] / 256, analyser.getData()[ 4 ] / 256, analyser.getData()[ 8 ] / 256 );
+        var color = analyser.getData()[ 4 ] > analyser.getData()[ 8 ] ? 0 : 1;
+        directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
 
 
 
@@ -186,11 +190,21 @@
 
 
 
-            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )* ( analyser.getData()[ i%8 ] /100) ;
-            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) * ( analyser.getData()[ i%4 ] /100);
-            particles[i].position.x = particles[i].initial_position.x / _cos + particles[i].position.z * (-1^ (i % 2)) * 0.005+ particles[i].position.y * (-1^ (i % 2)) * 0.0005;
+            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 ] ) ;
+            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 ] );
+            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 ] /10,2) ;
+
+            particles[i].material.color = new THREE.Color (
+                    _sin * (-1^ (i % 3) ) * ( analyser.getData()[ i%8 ] /1000),
+                    _cos * (-1^ (i % 2) ) * ( analyser.getData()[ i%4 ] /1000),
+                    0
+        );
 
         }
+
+        camera.rotation.z+= 0.001;
+        camera.rotation.y+= 0.001;
+        camera.rotation.x+= 0.001;
 
         renderer.render( scene, camera );
 
