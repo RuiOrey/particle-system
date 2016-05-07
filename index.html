@@ -80,7 +80,7 @@
 
 
         var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 32, 32 );
-        var material = new THREE.MeshStandardMaterial( { map: texture, metal:true,bumpMap:texture } );
+        var material = new THREE.MeshBasicMaterial( { map: texture, metal:true,bumpMap:texture } );
 
         for ( var i = 0 ; i< params.particles; i ++ ){
 
