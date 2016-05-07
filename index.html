@@ -190,9 +190,9 @@
 
 
 
-            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 ] ) ;
-            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 ] );
-            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 ] /10,2) ;
+            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 +1] ) ;
+            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 +1] );
+            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,2) ;
 
             particles[i].material.color = new THREE.Color (
                     _sin * (-1^ (i % 3) ) * ( analyser.getData()[ i%8 ] /1000),
