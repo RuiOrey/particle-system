@@ -18,6 +18,8 @@
 
 <script>
 
+    var analyser;
+
     var camera, scene, renderer;
     var mesh;
 
@@ -106,6 +108,25 @@
 
         scene.add(line);
 
+
+        var listener = new THREE.AudioListener();
+        camera.add( listener );
+
+
+        var audioLoader = new THREE.AudioLoader();
+
+        var sound1 = new THREE.PositionalAudio( listener );
+        audioLoader.load( 'models/ss.ogg', function( buffer ) {
+            sound1.setBuffer( buffer );
+            sound1.setRefDistance( 20 );
+            sound1.play();
+        });
+        camera.add( sound1 );
+        sound1.position.z = -10;
+
+        analyser = new THREE.AudioAnalyser( sound1, 32 );
+
+
         directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
         directionalLight.position.set( 0, 1, 0 );
         scene.add( directionalLight );
@@ -151,15 +172,21 @@
         var _sin = Math.sin(_elapsed);
         var _cos = Math.cos(_elapsed + Math.random()*0.01);
 
-        renderer.setClearColor( new THREE.Color(1*_cos,1*_cos,1*_cos), 1);
-        light.color = new THREE.Color(1*_cos,1*_cos,1*_cos);
+        renderer.setClearColor( new THREE.Color(1*_cos,analyser.getData()[ 8 ] / 256,analyser.getData()[ 8 ] / 256), 1);
+        //light.color = new THREE.Color(1*_cos,1*_cos,1*_cos);
+
+        light.color = new THREE.Color(1*_cos,analyser.getData()[ 8 ] / 256,analyser.getData()[ 8 ] / 256);
+
         directionalLight.position.set( _cos, _cos, _cos );
+        directionalLight.color = new THREE.Color(analyser.getData()[ 1 ] / 256,analyser.getData()[ 4 ] / 256,analyser.getData()[ 3 ] / 256);
 
 
 
         for ( var i = 0 ; i< particles.length; i ++ ){
 
-            particles[i].position.y = particles[i].initial_position.y * _sin * (-1^ (i % 3)) + Math.random() * 1;
+
+
+            particles[i].position.y = particles[i].initial_position.y * _sin * (-1^ (i % 3)) ;
             particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2));
             particles[i].position.x = particles[i].initial_position.x / _cos + particles[i].position.z * (-1^ (i % 2)) * 0.005+ particles[i].position.y * (-1^ (i % 2)) * 0.0005;
 
