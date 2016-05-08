@@ -29,7 +29,8 @@
 
         particles : 2000,
 
-        radius : 5000,
+        //radius : 5000,
+        radius : 500,
 
         ballRadius : 50
 
@@ -52,17 +53,25 @@
         linewidth:0.3
     });
 
+    var pause = 0;
+    var invert = 0;
+    var field_number = 0;
+
     init();
     animate();
+
+    function randomPosNeg() {
+        return Math.random() < 0.5 ? -1 : 1;
+    }
 
     function randomSpherePoint(x0,y0,z0,radius){
         var u = Math.random();
         var v = Math.random();
         var theta = 2 * Math.PI * u;
         var phi = Math.acos(2 * v - 1);
-        var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
-        var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
-        var z = z0 + (radius * Math.cos(phi));
+        var x = x0 + (radius * Math.sin(phi) * Math.cos(theta)) * randomPosNeg();
+        var y = y0 + (radius * Math.sin(phi) * Math.sin(theta)) * randomPosNeg();
+        var z = z0 + (radius * Math.cos(phi)) * randomPosNeg();
         return {x,y,z};
     }
 
@@ -79,7 +88,8 @@
 
 
 
-        var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 32, 32 );
+        var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 64, 64 );
+        //var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 16, 16 );
         var material = new THREE.MeshBasicMaterial( { map: texture, metal:true,bumpMap:texture } );
 
         for ( var i = 0 ; i< params.particles; i ++ ){
@@ -91,7 +101,10 @@
             mesh.position.set(
                     _point.x,
                     _point.y,
-                    _point.z
+                    _point.z,
+                    _point.lx,
+                    _point.ly,
+                    _point.lz
             );
 
             mesh.initial_position = _point;
@@ -114,6 +127,7 @@
 
 
         var audioLoader = new THREE.AudioLoader();
+        listener.setMasterVolume(0);
 
         var sound1 = new THREE.PositionalAudio( listener );
         audioLoader.load( 'models/ss.ogg', function( buffer ) {
@@ -144,6 +158,20 @@
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
+
+        document.addEventListener("click", function(){
+            if(pause == 1) {
+                pause = 0;
+                return;
+            }
+            pause = 1;
+            return;
+        });
+
+        document.addEventListener("keypress", function(e){
+            field_number = parseInt(String.fromCharCode(e.keyCode));
+        });
+
         document.body.appendChild( renderer.domElement );
 
         //
@@ -189,24 +217,105 @@
         directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
 
 
+        function stop(particle) {
+            particle.position.x = particle.position.x;
+            particle.position.y = particle.position.y;
+            particle.position.z = particle.position.z;
+            return particle;
+        }
+
+        function checkPointOutDouble(particle){
+            var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
+            var r = (params.radius*5) * (params.radius*5);
+            if(l > r){
+                return true;
+            }
+            return false;
+        }
+
+        function checkPointOut(particle){
+            var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
+            var r = (params.radius/2) * (params.radius/2);
+            if(l < r){
+                return true;
+            }
+            return false;
+        }
+
+        function basespeed(particle) {
+            particle.position.x = particle.position.x + particle.position.x *0.015;
+            particle.position.y = particle.position.y + particle.position.y *0.015;
+            particle.position.z = particle.position.z + particle.position.z *0.015;
+
+            return particle;
+        }
+
+        function move(particle) {
+            particle.position.x = particle.position.x + particle.position.x *0.015;
+            particle.position.y = particle.position.y + particle.position.y *0.015;
+            particle.position.z = particle.position.z + particle.position.z *0.015;
+
+            return particle;
+        }
+
+        function moveback(particle) {
+            particle.position.x = particle.position.x - particle.position.x *0.015;
+            particle.position.y = particle.position.y - particle.position.y *0.015;
+            particle.position.z = particle.position.z - particle.position.z *0.015;
+
+            return particle;
+        }
+
+        function handleBaseField(particle) {
+            if(invert == 0 && checkPointOutDouble(particles[i])) {
+                invert = 1;        
+            }
+
+            if (invert == 1 && checkPointOut(particles[i])) {
+                invert = 0;
+            }
+
+            if(invert == 0) {
+                return move(particles[i]);
+            } else {
+                return moveback(particles[i]);
+            }
+        }
+
+
+        // { -y, x ,z}
+        function field1(particle) {
+            var x = particle.position.x;
+            var y = particle.position.y;
+
+            particle.position.x = particle.position.x + (-y) * 0.015;
+            particle.position.y =  particle.position.y + x * 0.015;
+
+            return particle;
+        }
+
 
         for ( var i = 0 ; i< particles.length; i ++ ){
 
+            if(pause == 1) {
+                particles[i] = stop(particles[i]);
+            } else {
 
 
-            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 +1] ) ;
-            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 +1] );
-            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,2) ;
-            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,3) ;
-
-            particles[i].material.color = new THREE.Color (
-                    _sin * (-1^ (i % 3) ) * ( analyser.getData()[ i%8 ] /1000),
-                    _cos * (-1^ (i % 2) ) * ( analyser.getData()[ i%4 ] /1000),
-                    0
-        );
-
+                switch(field_number) {
+                    case 1:
+                        particles[i] = handleBaseField(particles[i]);
+                        break;
+                    case 2:
+                        particles[i] = basespeed(particles[i]);
+                        particles[i] = field1(particles[i]);
+                        break;    
+                }   
+                
+            }
         }
 
+        /*
         camera.rotation.z+= 0.001;
         camera.rotation.y+= 0.001;
         camera.rotation.x+= 0.001;
@@ -219,6 +328,7 @@
         camera.position.x = 12000 * (_cos2);
         camera.lookAt(new THREE.Vector3(0,0,0));
       //  camera.lookAt(particles[0].position);
+        */
 
         renderer.render( scene, camera );
 
