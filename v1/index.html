@@ -14,7 +14,7 @@
 </head>
 <body>
 
-<script src="threejs/build/three.js"></script>
+<script src="../threejs/build/three.js"></script>
 
 <script>
 
@@ -75,7 +75,7 @@
 
         scene = new THREE.Scene();
 
-        var texture = new THREE.TextureLoader().load( 'models/sun.jpg' );
+        var texture = new THREE.TextureLoader().load( '../models/sun.jpg' );
 
 
 
@@ -116,7 +116,7 @@
         var audioLoader = new THREE.AudioLoader();
 
         var sound1 = new THREE.PositionalAudio( listener );
-        audioLoader.load( 'models/ss.ogg', function( buffer ) {
+        audioLoader.load( '../models/ss.ogg', function( buffer ) {
             sound1.setBuffer( buffer );
             sound1.setRefDistance( 20 );
             sound1.play();
