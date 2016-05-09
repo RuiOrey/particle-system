@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>particle system</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <style>
+        body {
+            margin: 0px;
+            background-color: #000000;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+
+<script src="threejs/build/three.js"></script>
+
+<script>
+
+    var analyser,listener;
+
+    var camera, scene, renderer;
+    var mesh;
+
+    var params = {
+
+        demo : false,
+
+        particles : 2000,
+
+        radius : 5000,
+
+        ballRadius : 50
+
+    };
+
+    var clock = new THREE.Clock( true );
+
+
+
+    var particles = [];
+
+    var directionalLight;
+
+    var light;
+    var line;
+    var linegeometry = new THREE.Geometry();
+    var linematerial = new THREE.LineDashedMaterial({
+        color: 0x000011,
+        fog: true,
+        linewidth:0.3
+    });
+
+    init();
+    animate();
+
+    function randomSpherePoint(x0,y0,z0,radius){
+        var u = Math.random();
+        var v = Math.random();
+        var theta = 2 * Math.PI * u;
+        var phi = Math.acos(2 * v - 1);
+        var x = x0 + (radius * Math.sin(phi) * Math.cos(theta));
+        var y = y0 + (radius * Math.sin(phi) * Math.sin(theta));
+        var z = z0 + (radius * Math.cos(phi));
+        return {x,y,z};
+    }
+
+    function init() {
+
+        var _theta, _phi, _x, _y, _point;
+
+        camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
+        camera.position.z = 7000;
+
+        scene = new THREE.Scene();
+
+        var texture = new THREE.TextureLoader().load( 'models/sun.jpg' );
+
+
+
+        var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 32, 32 );
+        var material = new THREE.MeshBasicMaterial( { map: texture, metal:true,bumpMap:texture } );
+
+        for ( var i = 0 ; i< params.particles; i ++ ){
+
+            mesh = new THREE.Mesh( geometry, material );
+
+            _point = randomSpherePoint( 0, 0, 0, params.radius);
+
+            mesh.position.set(
+                    _point.x,
+                    _point.y,
+                    _point.z
+            );
+
+            mesh.initial_position = _point;
+
+            linegeometry.vertices.push(_point);
+
+            particles.push(mesh);
+
+            scene.add( mesh );
+
+        }
+
+        line = new THREE.Line(linegeometry, linematerial);
+
+        scene.add(line);
+
+
+        listener = new THREE.AudioListener();
+        camera.add( listener );
+
+
+        var audioLoader = new THREE.AudioLoader();
+
+        var sound1 = new THREE.PositionalAudio( listener );
+        audioLoader.load( 'models/ss.ogg', function( buffer ) {
+            sound1.setBuffer( buffer );
+            sound1.setRefDistance( 20 );
+            sound1.play();
+        });
+        camera.add( sound1 );
+        sound1.position.z = 1;
+        sound1.position.x = 1;
+        sound1.position.y = 1;
+
+        analyser = new THREE.AudioAnalyser( sound1, 32 );
+
+
+        directionalLight = new THREE.DirectionalLight( 0xffffff, 1 );
+        directionalLight.position.set( 0, 1, 0 );
+        scene.add( directionalLight );
+
+        directionalLight = new THREE.DirectionalLight( 0xffffff, 0.5 );
+        directionalLight.position.set( 1, 0, 1 );
+        scene.add( directionalLight );
+
+        //light = new THREE.AmbientLight( 0x404040 ); // soft white light
+        light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );; // soft white light
+        scene.add( light );
+
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+        document.body.appendChild( renderer.domElement );
+
+        //
+
+        window.addEventListener( 'resize', onWindowResize, false );
+
+    }
+
+    function onWindowResize() {
+
+        camera.aspect = window.innerWidth / window.innerHeight;
+        camera.updateProjectionMatrix();
+
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
+    }
+
+    function animate() {
+
+        scene.remove(line);
+
+        requestAnimationFrame( animate );
+
+        //scene.rotation.y+=0.001;
+        //scene.rotation.z+=0.001;
+
+        var _elapsed = Date.now()* 0.0005;;
+
+        var _sin = Math.sin(_elapsed );
+        var _cos = Math.cos(_elapsed + Math.random()*0.01);
+
+        renderer.setClearColor( new THREE.Color(
+                (analyser.getData()[ 2 ] / 500),
+                (analyser.getData()[ 4 ] / 500),
+                (analyser.getData()[ 8 ] / 500)),
+                1);
+        //light.color = new THREE.Color(1*_cos,1*_cos,1*_cos);
+
+        light.groundGolor = new THREE.Color(0,analyser.getData()[ 4 ] / 256,analyser.getData()[ 8 ] / 256);
+
+        directionalLight.position.set( analyser.getData()[ 1 ] / 256, analyser.getData()[ 4 ] / 256, analyser.getData()[ 8 ] / 256 );
+        var color = analyser.getData()[ 4 ] > analyser.getData()[ 8 ] ? 0 : 1;
+        directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
+
+
+
+        for ( var i = 0 ; i< particles.length; i ++ ){
+
+
+
+            particles[i].position.y = (particles[i].initial_position.y * _sin * (-1^ (i % 3)) )+ ( analyser.getData()[ i%8 +1] ) ;
+            particles[i].position.z = particles[i].initial_position.z * _cos * (-1^ (i % 2)) + ( analyser.getData()[ i%4 +1] );
+            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,2) ;
+            particles[i].position.x = particles[i].initial_position.x + Math.pow( analyser.getData()[ i%8 +1] /10,3) ;
+
+            particles[i].material.color = new THREE.Color (
+                    _sin * (-1^ (i % 3) ) * ( analyser.getData()[ i%8 ] /1000),
+                    _cos * (-1^ (i % 2) ) * ( analyser.getData()[ i%4 ] /1000),
+                    0
+            );
+
+        }
+
+        camera.rotation.z+= 0.001;
+        camera.rotation.y+= 0.001;
+        camera.rotation.x+= 0.001;
+
+        var _sin2 = Math.sin( _elapsed * 0.5);
+        var _cos2 = Math.cos(_elapsed *0.1);
+
+        camera.position.z = 12000 * _sin2;
+        camera.position.y = 12000 * _cos2;
+        camera.position.x = 12000 * (_cos2);
+        camera.lookAt(new THREE.Vector3(0,0,0));
+        //  camera.lookAt(particles[0].position);
+
+        renderer.render( scene, camera );
+
+    }
+
+</script>
+
+</body>
+</html>
