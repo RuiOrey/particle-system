@@ -227,10 +227,9 @@
         directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
 
 
-        for ( var i = 0 ; i< particles.length; i ++ ){
-            // RUI
-            handleEffects(particles[i]);
-        }
+
+            handleEffects(particles);
+
 
         /*
         camera.rotation.z+= 0.001;

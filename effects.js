@@ -51,7 +51,8 @@ function moveback(particle) {
     return particle;
 }
 
-function handleBaseField(particle) {
+function handleBaseField(particles) {
+    var particle = particles[0];
     if(invert == 0 && checkPointOutDouble(particle)) {
         invert = 1;        
     }
@@ -61,9 +62,9 @@ function handleBaseField(particle) {
     }
 
     if(invert == 0) {
-        return move(particle);
+        return move;
     } else {
-        return moveback(particle);
+        return moveback;
     }
 }
 
@@ -98,21 +99,29 @@ function setHandlers(document) {
 }
 
 
-function handleEffects(particle) {
+function handleEffects(particles) {
+    var _functions = [];
+
+
     if(pause == 1) {
-        return stop(particle);
+        _functions.push(stop);
     } else {
 
         switch(field_number) {
             case 1:
-                return handleBaseField(particle);
+                _functions.push(handleBaseField(particles));
                 break;
             case 2:
-                particle = basespeed(particle);
-                return field1(particle);
+                _functions.push(basespeed);
+                _functions.push(field1);
                 break;    
         }   
         
+    }
+
+    for ( var i = 0 ; i< _functions.length; i ++ ){
+        // RUI
+        particles = particles.map(_functions[i]);
     }
 }
 
