@@ -1,7 +1,7 @@
 Particle System
 ===============
 
-https://github.com/RuiOrey/particle-system.git
+http://ruiorey.github.io/particle-system/
 
 ![Particles](/particles.png)
 
