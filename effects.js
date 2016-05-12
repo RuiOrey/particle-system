@@ -51,8 +51,8 @@ function moveback(particle) {
     return particle;
 }
 
-function handleBaseField(particles) {
-    var particle = particles[0];
+function handleBaseField(particle) {
+   
     if(invert == 0 && checkPointOutDouble(particle)) {
         invert = 1;        
     }
@@ -109,7 +109,7 @@ function handleEffects(particles) {
 
         switch(field_number) {
             case 1:
-                _functions.push(handleBaseField(particles));
+                _functions.push(handleBaseField(particle[0]));
                 break;
             case 2:
                 _functions.push(basespeed);
