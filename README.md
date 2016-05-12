@@ -1,6 +1,8 @@
 Particle System
 ===============
 
+https://github.com/RuiOrey/particle-system.git
+
 ![Particles](/particles.png)
 
 This is an academic project created during the course in Computer Graphics.
