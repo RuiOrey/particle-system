@@ -15,6 +15,7 @@
 <body>
 
 <script src="threejs/build/three.js"></script>
+<script src="effects.js"></script>
 
 <script>
 
@@ -52,10 +53,6 @@
         fog: true,
         linewidth:0.3
     });
-
-    var pause = 0;
-    var invert = 0;
-    var field_number = 0;
 
     init();
     animate();
@@ -101,10 +98,7 @@
             mesh.position.set(
                     _point.x,
                     _point.y,
-                    _point.z,
-                    _point.lx,
-                    _point.ly,
-                    _point.lz
+                    _point.z
             );
 
             mesh.initial_position = _point;
@@ -159,21 +153,10 @@
         renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
 
-        document.addEventListener("click", function(){
-            if(pause == 1) {
-                pause = 0;
-                return;
-            }
-            pause = 1;
-            return;
-        });
-
-        document.addEventListener("keypress", function(e){
-            field_number = parseInt(String.fromCharCode(e.keyCode));
-        });
+        //RUI
+        setHandlers(document);
 
         document.body.appendChild( renderer.domElement );
-
         //
 
         window.addEventListener( 'resize', onWindowResize, false );
@@ -217,102 +200,9 @@
         directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
 
 
-        function stop(particle) {
-            particle.position.x = particle.position.x;
-            particle.position.y = particle.position.y;
-            particle.position.z = particle.position.z;
-            return particle;
-        }
-
-        function checkPointOutDouble(particle){
-            var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
-            var r = (params.radius*5) * (params.radius*5);
-            if(l > r){
-                return true;
-            }
-            return false;
-        }
-
-        function checkPointOut(particle){
-            var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
-            var r = (params.radius/2) * (params.radius/2);
-            if(l < r){
-                return true;
-            }
-            return false;
-        }
-
-        function basespeed(particle) {
-            particle.position.x = particle.position.x + particle.position.x *0.015;
-            particle.position.y = particle.position.y + particle.position.y *0.015;
-            particle.position.z = particle.position.z + particle.position.z *0.015;
-
-            return particle;
-        }
-
-        function move(particle) {
-            particle.position.x = particle.position.x + particle.position.x *0.015;
-            particle.position.y = particle.position.y + particle.position.y *0.015;
-            particle.position.z = particle.position.z + particle.position.z *0.015;
-
-            return particle;
-        }
-
-        function moveback(particle) {
-            particle.position.x = particle.position.x - particle.position.x *0.015;
-            particle.position.y = particle.position.y - particle.position.y *0.015;
-            particle.position.z = particle.position.z - particle.position.z *0.015;
-
-            return particle;
-        }
-
-        function handleBaseField(particle) {
-            if(invert == 0 && checkPointOutDouble(particles[i])) {
-                invert = 1;        
-            }
-
-            if (invert == 1 && checkPointOut(particles[i])) {
-                invert = 0;
-            }
-
-            if(invert == 0) {
-                return move(particles[i]);
-            } else {
-                return moveback(particles[i]);
-            }
-        }
-
-
-        // { -y, x ,z}
-        function field1(particle) {
-            var x = particle.position.x;
-            var y = particle.position.y;
-
-            particle.position.x = particle.position.x + (-y) * 0.015;
-            particle.position.y =  particle.position.y + x * 0.015;
-
-            return particle;
-        }
-
-
         for ( var i = 0 ; i< particles.length; i ++ ){
-
-            if(pause == 1) {
-                particles[i] = stop(particles[i]);
-            } else {
-
-
-                switch(field_number) {
-                    case 1:
-                        particles[i] = handleBaseField(particles[i]);
-                        break;
-                    case 2:
-                        particles[i] = basespeed(particles[i]);
-                        particles[i] = field1(particles[i]);
-                        break;    
-                }   
-                
-            }
+            // RUI
+            handleEffects(particles[i]);
         }
 
         /*
