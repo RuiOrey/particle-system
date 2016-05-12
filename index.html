@@ -62,13 +62,15 @@
     }
 
     function randomSpherePoint(x0,y0,z0,radius){
+
+        var _radius = radius * Math.random();
         var u = Math.random();
         var v = Math.random();
         var theta = 2 * Math.PI * u;
         var phi = Math.acos(2 * v - 1);
-        var x = x0 + (radius * Math.sin(phi) * Math.cos(theta)) * randomPosNeg();
-        var y = y0 + (radius * Math.sin(phi) * Math.sin(theta)) * randomPosNeg();
-        var z = z0 + (radius * Math.cos(phi)) * randomPosNeg();
+        var x = x0 + (_radius * Math.sin(phi) * Math.cos(theta)) ;
+        var y = y0 + (_radius * Math.sin(phi) * Math.sin(theta)) ;
+        var z = z0 + (_radius * Math.cos(phi)) ;
         return {x,y,z};
     }
 
@@ -76,44 +78,73 @@
 
         var _theta, _phi, _x, _y, _point;
 
+        renderer = new THREE.WebGLRenderer();
+        renderer.setPixelRatio( window.devicePixelRatio );
+        renderer.setSize( window.innerWidth, window.innerHeight );
+
         camera = new THREE.PerspectiveCamera( 45, window.innerWidth / window.innerHeight, 1, 100000 );
         camera.position.z = 7000;
 
         scene = new THREE.Scene();
 
-        var texture = new THREE.TextureLoader().load( 'models/sun.jpg' );
+        var texture = new THREE.TextureLoader().load( 'models/sun.jpg',
+                function(t){
+
+                    var textureEquirec = t.clone();
+
+                    textureEquirec.needsUpdate = true;
+
+                    //textureEquirec = THREE.ImageUtils.loadTexture( "assets/living-room-panorama3-0.jpg" );
+
+                    textureEquirec.format = THREE.RGBAFormat;
+
+                    textureEquirec.mapping = THREE.EquirectangularReflectionMapping;
+
+                    textureEquirec.magFilter = THREE.LinearFilter;
+
+                    textureEquirec.minFilter = THREE.LinearMipMapLinearFilter;
+
+                    textureEquirec.wrapS = THREE.MirroredRepeatWrapping;
+                    textureEquirec.wrapT = THREE.MirroredRepeatWrapping;
+
+                    textureEquirec.repeat.set( 6, 6 );
+
+                    var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 64, 64 );
+                    //var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 16, 16 );
+                    var material = new THREE.MeshBasicMaterial( { color:0xff4500, metal:true,map:t } );
+
+                    for ( var i = 0 ; i< params.particles; i ++ ){
+
+                        mesh = new THREE.Mesh( geometry, material );
+
+                        _point = randomSpherePoint( 0, 0, 0, params.radius);
+
+                        mesh.position.set(
+                                _point.x,
+                                _point.y,
+                                _point.z
+                        );
+
+                        mesh.initial_position = _point;
+
+                        linegeometry.vertices.push(_point);
+
+                        particles.push(mesh);
+
+                        scene.add( mesh );
+
+                    }
+
+                    line = new THREE.Line(linegeometry, linematerial);
+
+                    scene.add(line);
+                }
+        );
 
 
 
-        var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 64, 64 );
-        //var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 16, 16 );
-        var material = new THREE.MeshBasicMaterial( { map: texture, metal:true,bumpMap:texture } );
 
-        for ( var i = 0 ; i< params.particles; i ++ ){
 
-            mesh = new THREE.Mesh( geometry, material );
-
-            _point = randomSpherePoint( 0, 0, 0, params.radius);
-
-            mesh.position.set(
-                    _point.x,
-                    _point.y,
-                    _point.z
-            );
-
-            mesh.initial_position = _point;
-
-            linegeometry.vertices.push(_point);
-
-            particles.push(mesh);
-
-            scene.add( mesh );
-
-        }
-
-        line = new THREE.Line(linegeometry, linematerial);
-
-        scene.add(line);
 
 
         var listener = new THREE.AudioListener();
@@ -121,12 +152,12 @@
 
 
         var audioLoader = new THREE.AudioLoader();
-        listener.setMasterVolume(0);
+        listener.setMasterVolume(20);
 
         var sound1 = new THREE.PositionalAudio( listener );
         audioLoader.load( 'models/ss.mp3', function( buffer ) {
             sound1.setBuffer( buffer );
-            sound1.setRefDistance( 20 );
+            sound1.setRefDistance( 0.02 );
             sound1.play();
         });
         camera.add( sound1 );
@@ -148,10 +179,6 @@
         //light = new THREE.AmbientLight( 0x404040 ); // soft white light
         light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );; // soft white light
         scene.add( light );
-
-        renderer = new THREE.WebGLRenderer();
-        renderer.setPixelRatio( window.devicePixelRatio );
-        renderer.setSize( window.innerWidth, window.innerHeight );
 
         //RUI
         setHandlers(document);
