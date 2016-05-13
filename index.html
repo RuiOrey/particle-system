@@ -28,7 +28,7 @@
 
         demo : false,
 
-        particles : 2000,
+        particles : 1000,
 
         //radius : 5000,
         radius : 500,
@@ -111,7 +111,7 @@
 
                     var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 64, 64 );
                     //var geometry = new THREE.SphereBufferGeometry( params.ballRadius, 16, 16 );
-                    var material = new THREE.MeshBasicMaterial( { color:0xff4500, metal:true,map:t } );
+                    var material = new THREE.MeshPhongMaterial( { color:0xff4500, metal:true,map:t } );
 
                     for ( var i = 0 ; i< params.particles; i ++ ){
 
@@ -180,7 +180,7 @@
         light = new THREE.HemisphereLight( 0xffffbb, 0x080820, 1 );; // soft white light
         scene.add( light );
 
-        //RUI
+        //RUIM
         setHandlers(document);
 
         document.body.appendChild( renderer.domElement );
@@ -227,8 +227,11 @@
         directionalLight.color = new THREE.Color((1-color) * analyser.getData()[ 4 ] / 256,color * analyser.getData()[ 8 ] / 256,(1-color) *analyser.getData()[ 3 ] / 256);
 
 
+        camera.position.set(7000* Math.cos((analyser.getData()[ 1 ] / 128)),7000*Math.sin( (analyser.getData()[ 1 ] / 128)),1000 + 6000* Math.sin((analyser.getData()[ 1 ] / 128)));
+        camera.lookAt( new THREE.Vector3(0,0,0));
 
             handleEffects(particles);
+           // handleSound(particles,analyser);
 
 
         /*

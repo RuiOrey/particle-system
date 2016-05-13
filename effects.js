@@ -1,6 +1,6 @@
-var pause = 0;
+var pause = false;
 var invert = 0;
-var field_number = 0;
+var field_number = 1;
 
 function stop(particle) {
     particle.position.x = particle.position.x;
@@ -11,7 +11,7 @@ function stop(particle) {
 
 function checkPointOutDouble(particle){
     var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
-    var r = (params.radius*5) * (params.radius*5);
+    var r = (params.radius*20) * (params.radius*20);
     if(l > r){
         return true;
     }
@@ -20,7 +20,7 @@ function checkPointOutDouble(particle){
 
 function checkPointOut(particle){
     var l = particle.position.x * particle.position.x + particle.position.y * particle.position.y + particle.position.z * particle.position.z;
-    var r = (params.radius/2) * (params.radius/2);
+    var r = (params.radius) * (params.radius);
     if(l < r){
         return true;
     }
@@ -52,7 +52,7 @@ function moveback(particle) {
 }
 
 function handleBaseField(particle) {
-   
+
     if(invert == 0 && checkPointOutDouble(particle)) {
         invert = 1;        
     }
@@ -85,11 +85,7 @@ function field1(particle) {
 
 function setHandlers(document) {
     document.addEventListener("click", function(){
-        if(pause == 1) {
-            pause = 0;
-            return;
-        }
-        pause = 1;
+        pause = !pause;
         return;
     });
 
@@ -101,15 +97,17 @@ function setHandlers(document) {
 
 function handleEffects(particles) {
     var _functions = [];
+    if (particles[0] === undefined)
+        return;
 
 
-    if(pause == 1) {
+    if(pause) {
         _functions.push(stop);
     } else {
 
         switch(field_number) {
             case 1:
-                _functions.push(handleBaseField(particle[0]));
+                _functions.push(handleBaseField(particles[0]));
                 break;
             case 2:
                 _functions.push(basespeed);
@@ -120,9 +118,30 @@ function handleEffects(particles) {
     }
 
     for ( var i = 0 ; i< _functions.length; i ++ ){
-        // RUI
+        // RUIM
         particles = particles.map(_functions[i]);
     }
 }
 
+
+function handleSound(particles, analyser) {
+    var _elapsed = Date.now()* 0.0005;;
+    var _sin = Math.sin(_elapsed );
+    var _cos = Math.cos(_elapsed + Math.random()*0.01);
+
+
+    var _changeya = ( analyser.getData()[ i%8 +1] );
+    _changeya = _changeya == undefined ? 0: _changeya;
+    var _changeza = ( analyser.getData()[ i%4 +1] );
+    _changeza = _changeza == undefined ? 0: _changeza;
+    var _changex =  ( analyser.getData()[ i%4 +1] );
+    _changex = _changex == undefined ? 1 : _changex;
+
+    for ( var i = 0 ; i< particles.length; i ++ ){
+
+        particles[i].position.x = particles[i].position.x + _changex ;
+        particles[i].position.y = particles[i].position.y  + _changeya;
+        particles[i].position.z = particles[i].position.z  + _changeza;
+    }
+}
         
